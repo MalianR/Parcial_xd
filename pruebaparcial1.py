@@ -30,3 +30,4 @@ nx.draw(G, pos,
         arrowsize=10)
 
 plt.show()
+print("hello")
