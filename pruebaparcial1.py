@@ -1,5 +1,7 @@
-import networkx as nx
+import numpy as np
 import matplotlib.pyplot as plt
+import networkx as nx
+import netgraph
 
 # Crear un grafo dirigido vacío
 G = nx.DiGraph()
@@ -18,16 +20,23 @@ G.add_edge(2, 5)
 G.add_edge(4, 5)
 G.add_edge(2, 3)
 
-# Dibujar el grafo con nodos y etiquetas personalizadas
-pos = nx.spring_layout(G) # posición de los nodos
-nx.draw(G, pos,
-        with_labels=True,
-        node_color=['orange', 'green', 'yellow', 'blue', 'red'],
-        node_size=1500,
-        edge_color='black',
-        arrows=True,
-        arrowstyle='->',
-        arrowsize=10)
+# Definir posiciones iniciales de los nodos
+pos = {1: np.array([0, 0]), 2: np.array([-2, 1]), 3: np.array([2, 1]), 4: np.array([-3, 2]), 5: np.array([1, 2])}
 
+# Verificar y ajustar posiciones para evitar divisiones por cero
+for node, position in pos.items():
+    if np.linalg.norm(position) == 0:
+        pos[node] = np.array([0, 0]) # Ajustar posición a un vector no nulo
+
+# Crear un gráfico interactivo con netgraph
+I = netgraph.InteractiveGraph(G,
+                              node_positions=pos,
+                              node_labels=True,
+                              node_label_bbox=dict(fc="lightgreen", ec="black", boxstyle="square", lw=3),
+                              node_size=12)
+
+# Mostrar el gráfico interactivo
+plt.ion()
 plt.show()
-print("hello")
+plt.pause(10) # Pausa para mantener la ventana abierta
+
