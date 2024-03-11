@@ -1,8 +1,32 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
-import netgraph
+import netgraph as ng
 
+def update_graph():
+    global I
+    plt.clf()  # Borra la figura actual
+    I = ng.InteractiveGraph(G,
+                            node_positions=pos,
+                            node_labels=True,
+                            node_label_bbox=dict(fc="lightgreen", ec="black", boxstyle="square", lw=3),
+                            node_size=12)
+    plt.ion()
+    plt.show()
+
+
+def add_new_graph(event):
+    # Esta función se activará cuando se presione una tecla
+    if event.key == 'a':
+        # Agrega nodos con atributos al grafo existente
+        G.add_node(6, nombre='Tarea 6', duracion=3, costo=15, prerrequisitos=[], postrequisitos=[])
+        G.add_node(7, nombre='Tarea 7', duracion=6, costo=25, prerrequisitos=[6], postrequisitos=[])
+        
+        # Agrega aristas al grafo existente según necesites
+        G.add_edge(6, 7)
+        
+        # Actualiza y redibuja el gráfico
+        update_graph()
 # Crear un grafo dirigido vacío
 G = nx.DiGraph()
 
@@ -21,7 +45,7 @@ G.add_edge(4, 5)
 G.add_edge(2, 3)
 
 # Definir posiciones iniciales de los nodos
-pos = {1: np.array([0, 0]), 2: np.array([-2, 1]), 3: np.array([2, 1]), 4: np.array([-3, 2]), 5: np.array([1, 2])}
+pos = {1: np.array([1, 1]), 2: np.array([1, 2]), 3: np.array([1, 3]), 4: np.array([1, 4]), 5: np.array([1, 5])}
 
 # Verificar y ajustar posiciones para evitar divisiones por cero
 for node, position in pos.items():
@@ -29,14 +53,17 @@ for node, position in pos.items():
         pos[node] = np.array([0, 0]) # Ajustar posición a un vector no nulo
 
 # Crear un gráfico interactivo con netgraph
-I = netgraph.InteractiveGraph(G,
+I = ng.InteractiveGraph(G,
                               node_positions=pos,
                               node_labels=True,
                               node_label_bbox=dict(fc="lightgreen", ec="black", boxstyle="square", lw=3),
                               node_size=12)
 
+# Registrar la función para activar cuando se presione una tecla
+plt.gcf().canvas.mpl_connect('key_press_event', add_new_graph)
+
 # Mostrar el gráfico interactivo
 plt.ion()
 plt.show()
-plt.pause(10) # Pausa para mantener la ventana abierta
+plt.pause(10000) # Pausa para mantener la ventana abierta
 
