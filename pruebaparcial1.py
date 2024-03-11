@@ -38,5 +38,5 @@ I = netgraph.InteractiveGraph(G,
 # Mostrar el gráfico interactivo
 plt.ion()
 plt.show()
-plt.pause(10) # Pausa para mantener la ventana abierta
+plt.pause(100000) # Pausa para mantener la ventana abierta
 
