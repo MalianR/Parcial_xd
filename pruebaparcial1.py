@@ -1,61 +1,62 @@
-import matplotlib.pyplot as plt  
-import networkx as nx 
-from netgraph import EditableGraph 
-import numpy as np  
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import networkx as nx
+from netgraph import EditableGraph
+import numpy as np
 
-# Crea un grafo dirigido
+# Define el grafo y sus atributos
 g = nx.DiGraph()
-
-# Lista de tuplas de aristas con sus atributos (pesos)
-edges_list = [
-    (1, 2, {'weight': 1}),
-    (1, 4, {'weight': 1.1}),
-    (2, 5, {'weight': 0.5}),
-    (4, 5, {'weight': 1.3}),
-    (2, 3, {'weight': 0.8})
-]
-
-# Añade las aristas al grafo
+edges_list = [(1, 2, {'weight': 1}), (1, 4, {'weight': 1.1}), (2, 5, {'weight': 0.5}),
+              (4, 5, {'weight': 1.3}), (2, 3, {'weight': 0.8})]
 g.add_edges_from(edges_list)
 
-# Crea un diccionario para almacenar los pesos de las aristas
-edges_weight = {}
-for i in range(len(edges_list)):
-    edges_weight[(edges_list[i][0], edges_list[i][1])] = edges_list[i][2]['weight']
-
-# Diccionario para almacenar los colores de las aristas
-edge_color = dict()
-for ii, (source, target) in enumerate(g.edges):
-    edge_color[(source, target)] = 'tab:gray' if ii % 2 else 'tab:orange'
-
-# Diccionario para almacenar los colores de los nodos y define los atributos de los nodos
-node_color = dict()
-g.add_nodes_from([
-     (1, {"nombre": 'Tarea 1', "duracion": 4, "costo": 20, "prerrequisitos": [1], "postrequisitos": [3, 5]}),
-     (2, {"nombre": 'Tarea 2', "duracion": 10, "costo": 50, "prerrequisitos": [2], "postrequisitos": [5]}),
-     (3, {"nombre": 'Tarea 3', "duracion": 15, "costo": 20, "prerrequisitos": [1], "postrequisitos": [5]}),
-     (4, {"nombre": 'Tarea 4', "duracion": 15, "costo": 20, "prerrequisitos": [1], "postrequisitos": [5]}),
-     (5, {"nombre": 'Tarea 5', "duracion": 15, "costo": 20, "prerrequisitos": [1], "postrequisitos": [5]}),
-])
-
-# Define los colores de los nodos
-for node in g.nodes:
-    node_color[node] = 'tab:red' if node % 2 else 'tab:blue'
-
-# Crea la figura y los ejes para el gráfico
-fig, ax = plt.subplots(figsize=(10, 10))
+node_color = {1: 'tab:red', 2: 'tab:blue', 3: 'tab:red', 4: 'tab:blue', 5: 'tab:red'}
 
 # Posiciones de los nodos
 pos = {1: np.array([1, 1]), 2: np.array([1, 2]), 3: np.array([1, 3]), 4: np.array([1, 4]), 5: np.array([1, 5])}
 
-# Grafica el grafo editable con sus atributos y posiciones definidos
-plot_instance = EditableGraph(g, pos=pos,
-    node_color=node_color, node_size=5, edge_labels=edges_weight,
-    node_labels=True, edge_layout_kwargs=dict(k=0.025),
-    node_label_fontdict=dict(size=20),
-    edge_color=edge_color, edge_width=2,
-    annotation_fontdict=dict(color='blue', fontsize=15), edge_label_fontdict=dict(fontweight='bold'),
-    arrows=True, ax=ax)
-    
-# Muestra el gráfico
+# Diccionario para almacenar los colores de las aristas
+edge_color = {}
+for ii, (source, target) in enumerate(g.edges):
+    edge_color[(source, target)] = 'tab:gray' if ii % 2 else 'tab:orange'
+
+def dijkstra(g, start, end):
+    shortest_path = nx.shortest_path(g, source=start, target=end)
+    return shortest_path
+
+def aplicar_dijkstra(event):
+    start_node = int(input("Ingrese el nodo de inicio: "))
+    end_node = int(input("Ingrese el nodo de fin: "))
+    shortest_path = dijkstra(g, start_node, end_node)
+
+    # Colorea el camino más corto de otro color
+    path_edges = list(zip(shortest_path, shortest_path[1:]))
+    for edge in g.edges():
+        if edge in path_edges or edge[::-1] in path_edges:
+            edge_color[edge] = 'tab:green'
+        else:
+            edge_color[edge] = 'tab:gray' # Simplemente asigna 'tab:gray' a las aristas no utilizadas
+
+    plot_instance.update_graph(edge_color=edge_color)
+
+# Crea la figura y los ejes para el gráfico con un tamaño más grande
+fig = plt.figure(figsize=(15, 10))  # Ajusta el tamaño de la figura según tus necesidades Chequear
+gs = gridspec.GridSpec(1, 1, figure=fig)
+ax = fig.add_subplot(gs[0, 0])
+
+# Ajusta el tamaño del área de visualización del grafo
+ax.set_position([0, 0, 1.3, 1.3])  # ajusta la posición del área del grafo #Chequear
+
+# Crea el gráfico inicial
+plot_instance = EditableGraph(g, pos=pos, node_color=node_color, node_size=5, edge_labels=True, node_labels=True,
+                              edge_layout_kwargs=dict(k=0.025), node_label_fontdict=dict(size=20), edge_width=2, #Revisar importante 
+                              annotation_fontdict=dict(color='blue', fontsize=15), edge_label_fontdict=dict(fontweight='bold'),
+                              arrows=True, ax=ax)
+
+# Agrega un botón para aplicar Dijkstra
+ax_aplicar_dijkstra = plt.axes([0.8, 0.025, 0.1, 0.04])
+btn_aplicar_dijkstra = plt.Button(ax_aplicar_dijkstra, 'Aplicar Dijkstra')
+btn_aplicar_dijkstra.on_clicked(aplicar_dijkstra)
+
 plt.show()
+
