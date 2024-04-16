@@ -49,11 +49,12 @@ def save_graph(event): # Añade 'event' como argumento
         messagebox.showinfo("Información", f"Grafo guardado en {abs_file_path}")
 
 # Función para cargar el grafo
-def load_graph():
+def load_graph(event): # Se agrego 'event' como argumento
     file_path = filedialog.askopenfilename(title="Cargar Grafo", filetypes=[("JSON files", "*.json")])
     if file_path:
         global g
         g = load(file_path)
+
 
 node_color = {1: 'tab:red', 2: 'tab:blue', 3: 'tab:red', 4: 'tab:blue', 5: 'tab:red'}
 
@@ -127,7 +128,7 @@ btn_save_graph = plt.Button(ax_save_graph, 'Guardar Grafo')
 btn_save_graph.on_clicked(save_graph)
 
 # Agrega un botón para cargar el grafo
-ax_load_graph = plt.axes([0.85, 0.025, 0.1, 0.04])
+ax_load_graph = plt.axes([0.85, 0.85, 0.1, 0.04])
 btn_load_graph = plt.Button(ax_load_graph, 'Cargar Grafo')
 btn_load_graph.on_clicked(load_graph)
 
