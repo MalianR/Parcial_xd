@@ -6,6 +6,7 @@ InteractiveGraph variants.
 """
 
 import itertools
+from platform import node
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -93,7 +94,7 @@ class MutableGraph(InteractiveGraph):
         # Ignore data limits and return full canvas.
         xmin, ymin = self.origin
         dx, dy = self.scale
-        self.ax.axis([xmin, xmin+dx, ymin, ymin+dy])
+        self.ax.axis([xmin-0.9, xmin+dx, ymin-0.1, ymin+dy])
 
         self.fig.canvas.mpl_connect('key_press_event', self._on_key_press)
 
@@ -480,6 +481,7 @@ class EditableGraph(MutableGraph):
         # initiate node and edge label data structures if they don't exist
         if not hasattr(self, 'node_label_artists'):
             node_labels = {node : '' for node in self.nodes}
+            self.node_labels = node_labels 
             self.node_label_fontdict = self._initialize_node_label_fontdict(
                 kwargs.get('node_label_fontdict'), node_labels, kwargs.get('node_label_offset', (0., 0.)))
             self.node_label_offset, self._recompute_node_label_offsets =\
@@ -506,6 +508,8 @@ class EditableGraph(MutableGraph):
         if event.key == 'enter':
             if self._currently_writing_labels or self._currently_writing_annotations:
                 self._terminate_writing()
+                print(self.node_label_artists)
+                print(self.edge_label_artists)
             else:
                 self._initiate_writing_labels()
         elif event.key == 'alt+enter':
@@ -525,9 +529,10 @@ class EditableGraph(MutableGraph):
     def _terminate_writing(self):
         self._currently_writing_labels = False
         self._currently_writing_annotations = False
-        self.fig.canvas.manager.key_press_handler_id \
-            = self.fig.canvas.mpl_connect('key_press_event', self.fig.canvas.manager.key_press)
+        # Asegúrate de que el manejador de eventos de teclado esté definido correctamente
+        self.fig.canvas.mpl_connect('key_press_event', self._on_key_press)
         print('Finished writing.')
+
 
 
     def _initiate_writing_labels(self):

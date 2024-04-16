@@ -17,7 +17,7 @@ annotations = {
     (0, 1) : dict(s='This is not a node.', color='red')
 }
 
-fig, ax = plt.subplots(figsize=(10, 10))
+fig, ax = plt.subplots(figsize=(4, 4))
 
 plot_instance = EditableGraph(
     g, node_color=node_color, node_size=5,
