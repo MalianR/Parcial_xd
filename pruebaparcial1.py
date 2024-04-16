@@ -3,16 +3,57 @@ import matplotlib.gridspec as gridspec
 import networkx as nx
 from netgraph import EditableGraph
 import tkinter as tk
-from tkinter import simpledialog
+from tkinter import filedialog, simpledialog, messagebox  # Added imports
 import numpy as np
 import json
 import os
 
-# Define el grafo y sus atributos
+# Función para guardar el grafo en un archivo JSON
+def save(G, fname):
+    data = {
+        'nodes': [[n, G.nodes[n]] for n in G.nodes()],
+        'edges': [[u, v, G.edges[u, v]] for u, v in G.edges()]
+    }
+    with open(fname, 'w') as f:
+        json.dump(data, f, default=lambda x: x.__dict__)
+
+# Función para cargar el grafo desde un archivo JSON
+def load(fname):
+    with open(fname, 'r') as f:
+        data = json.load(f)
+    G = nx.DiGraph()
+    G.add_nodes_from(data['nodes'])
+    G.add_edges_from(data['edges'])
+    return G
+
+# Inicializa el grafo antes de intentar acceder a sus aristas
 g = nx.DiGraph()
+
+# Ahora puedes agregar aristas y nodos a 'g'
 edges_list = [(1, 2, {'weight': 1}), (1, 4, {'weight': 1.1}), (2, 5, {'weight': 0.5}),
               (4, 5, {'weight': 1.3}), (2, 3, {'weight': 0.8})]
 g.add_edges_from(edges_list)
+
+# Función para guardar el grafo
+def save_graph(event): # Añade 'event' como argumento
+    file_path = filedialog.asksaveasfilename(title="Guardar Grafo", defaultextension=".json", filetypes=[("JSON files", "*.json")])
+    if file_path:
+        # Asegúrate de que la ruta del archivo sea absoluta
+        abs_file_path = os.path.abspath(file_path)
+        # Verifica si el archivo ya existe y si el usuario desea sobrescribirlo
+        if os.path.exists(abs_file_path):
+            overwrite = messagebox.askyesno("Advertencia", "El archivo ya existe. ¿Deseas sobrescribirlo?")
+            if not overwrite:
+                return
+        save(g, abs_file_path)
+        messagebox.showinfo("Información", f"Grafo guardado en {abs_file_path}")
+
+# Función para cargar el grafo
+def load_graph(event):
+    file_path = filedialog.askopenfilename(title="Cargar Grafo", filetypes=[("JSON files", "*.json")])
+    if file_path:
+        global g
+        g = load(file_path)
 
 node_color = {1: 'tab:red', 2: 'tab:blue', 3: 'tab:red', 4: 'tab:blue', 5: 'tab:red'}
 
@@ -67,7 +108,7 @@ def aplicar_dijkstra(event):
                                       arrows=True, ax=ax, edge_color=edge_color) # Asegúrate de pasar edge_color aquí
 
         # Ajusta el tamaño del área de visualización del grafo y elimina las fronteras
-        ax.set_position([0.05, 0.05, 0.75, 0.9]) # ajusta la posición del área del grafo
+        ax.set_position([0.08, 0.20, 0.75, 0.9]) # ajusta la posición del área del grafo
         ax.axis('off') # Elimina las fronteras del subplot
 
         plt.draw() # Redibuja la figura
@@ -78,7 +119,7 @@ gs = gridspec.GridSpec(100, 100, figure=fig)
 ax = fig.add_subplot(gs[0, 0])
 
 # Ajusta el tamaño del área de visualización del grafo y elimina las fronteras
-ax.set_position([0.05, 0.05, 0.75, 0.9]) # ajusta la posición del área del grafo
+ax.set_position([0.08, 0.20, 0.75, 0.9]) # ajusta la posición del área del grafo
 ax.axis('off') # Elimina las fronteras del subplot
 
 # Crea el gráfico inicial
@@ -93,5 +134,15 @@ def xd(event):
 ax_aplicar_dijkstra = plt.axes([0.85, 0.025, 0.1, 0.04])
 btn_aplicar_dijkstra = plt.Button(ax_aplicar_dijkstra, 'Aplicar Dijkstra')
 btn_aplicar_dijkstra.on_clicked(xd)
+
+# Agrega un botón para guardar el grafo
+ax_save_graph = plt.axes([0.85, 0.075, 0.1, 0.04])
+btn_save_graph = plt.Button(ax_save_graph, 'Guardar Grafo')
+btn_save_graph.on_clicked(save_graph)
+
+# Agrega un botón para cargar el grafo
+ax_load_graph = plt.axes([0.85, 0.125, 0.1, 0.04]) # Changed the position to prevent overlapping
+btn_load_graph = plt.Button(ax_load_graph, 'Cargar Grafo')
+btn_load_graph.on_clicked(load_graph)
 
 plt.show()
