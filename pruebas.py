@@ -10,7 +10,6 @@ from PyQt5 import QtWidgets, QtCore
 import networkx as nx
 from netgraph import EditableGraph
 
-
 class MplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=500, height=400, dpi=100):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
@@ -24,22 +23,36 @@ class MplCanvas(FigureCanvas):
 
     def keyPressEvent(self, event):
         key = event.key()
-        modifiers = event.modifiers()
-        print("Pressed key:", key, "Modifiers:", modifiers)  # Print additional info
-        
-        # Verificar si la tecla Shift está presionada
+        modifiers = event.modifiers() # Obtiene los modificadores del evento de tecla
+        print("Pressed key:", key, "Modifiers:", modifiers) # Print additional info
+
         if modifiers & QtCore.Qt.ShiftModifier:
-            if key == QtCore.Qt.Key_Insert:  # Detectar Shift + Insert
-                self.graph.add_node()
-            elif key == QtCore.Qt.Key_Minus:  # Detectar Shift + Minus
-                self.graph.delete_selected()
-            elif key == QtCore.Qt.Key_At:  # Detectar Shift + At (@)
-                self.graph.reverse_edges()
+            if key == QtCore.Qt.Key_Insert: # Detectar Shift + Insert
+                self.add_node_dialog()
+                print("sads")
+            elif key == QtCore.Qt.Key_Minus: # Detectar Shift + Minus
+                self.delete_selected()
+                print("sads")
+            elif key == QtCore.Qt.Key_At: # Detectar Shift + At (@)
+                self.reverse_edges()
+                print("sads")
         else:
             super().keyPressEvent(event)
-        
-        print("End of keyPressEvent")  # Debug print
+            #print("sads")
 
+        print("End of keyPressEvent") # Debug print
+
+
+    def add_node_dialog(self):
+        dialog = QtWidgets.QInputDialog(self)
+        dialog.setWindowTitle("Agregar Nodo")
+        dialog.setLabelText("Ingrese el valor del nodo:")
+        dialog.setOkButtonText("Agregar")
+        dialog.setCancelButtonText("Cancelar")
+        ok = dialog.exec_()
+        if ok:
+            node_value = dialog.textValue()
+            print(f"Agregando nodo con valor: {node_value}")
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -65,14 +78,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         node_color = {1: 'tab:red', 2: 'tab:blue', 3: 'tab:red', 4: 'tab:blue', 5: 'tab:red'}
 
-        if os.path.exists('node_positions.json'):
-            with open('node_positions.json', 'r') as f:
-                pos = json.load(f)
-        else:
-            posiciones_prueba = {0:[0.20884049, 0.63785382], 1:[ 0.3815457 , -0.07913863], 2 : [-0.47329615,  0.48814794], 3 : [0.51269761, -1], 4 : [-0.62978766, -0.04686313]}
-            pos = nx.spring_layout(g, pos=posiciones_prueba)
-            with open('node_positions.json', 'w') as f:
-                json.dump(pos, f)
+        pos = nx.spring_layout(g) # Genera posiciones de nodos automáticamente
         original_pos = pos.copy()
 
         edge_color = {}
@@ -102,21 +108,19 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.canvas.ax.clear()
 
                 self.canvas.graph = EditableGraph(g, node_positions=pos, node_color=node_color, node_size=5, edge_labels=True, node_labels=True,
-                                                  edge_layout_kwargs=dict(k=0.025), node_label_fontdict=dict(size=20), edge_width=2, 
-                                                  annotation_fontdict=dict(color='blue', fontsize=15), edge_label_fontdict=dict(fontweight='bold'),
-                                                  arrows=True, ax=self.canvas.ax, edge_color=edge_color)
+                                                 edge_layout_kwargs=dict(k=0.025), node_label_fontdict=dict(size=20), edge_width=2, 
+                                                 annotation_fontdict=dict(color='blue', fontsize=15), edge_label_fontdict=dict(fontweight='bold'),
+                                                 arrows=True, ax=self.canvas.ax, edge_color=edge_color)
 
                 self.canvas.ax.set_position([0.05, 0.05, 0.75, 0.9])
                 self.canvas.ax.axis('off')
                 self.canvas.draw()
 
         def guardar_edges_list():
-            node_positions = self.canvas.graph.node_positions
-            node_positions_json = {str(k): v.tolist() for k, v in node_positions.items()}
-            print(node_positions_json)
+            edges_list = list(g.edges(data=True))
             with open('edge_list.json', 'w') as f:
-                json.dump(node_positions_json, f)
-            print("Posiciones de nodos guardadas en node_positions.json")
+                json.dump(edges_list, f, indent=2)
+            print("Lista de aristas guardada en edge_list.json")
 
         self.canvas.graph = EditableGraph(g, node_positions=pos, node_color=node_color, node_size=5, edge_labels=True, node_labels=True,
                                           edge_layout_kwargs=dict(k=0.025), node_label_fontdict=dict(size=20), edge_width=2,
@@ -133,7 +137,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.guardar_button = QtWidgets.QPushButton('Guardar Edges List', self)
         self.guardar_button.clicked.connect(guardar_edges_list)
         self.layout.addWidget(self.guardar_button)
-
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
