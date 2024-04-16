@@ -250,6 +250,7 @@ class BaseGraph(object):
     """
 
     def __init__(self, edges,
+                 edges_with_weight = None,
                  nodes=None,
                  node_layout='spring',
                  node_layout_kwargs=None,
@@ -281,9 +282,10 @@ class BaseGraph(object):
                  *args, **kwargs
     ):
         self.edges = _parse_edge_list(edges)
-
+        self.edges_with_weight = edges_with_weight
         self.nodes = self._initialize_nodes(nodes)
 
+        print(self.edges_with_weight)
         # Convert all node and edge parameters to dictionaries.
         node_shape      = self._normalize_string_argument(node_shape, self.nodes, 'node_shape')
         node_size       = self._normalize_numeric_argument(node_size, self.nodes, 'node_size')
@@ -781,7 +783,6 @@ class BaseGraph(object):
     def _update_straight_edge_paths(self, edges):
         # remove self-loops
         edges = [(source, target) for source, target in edges if source != target]
-
         edge_paths = dict()
         for (source, target) in edges:
             x0, y0 = self.node_positions[source]
@@ -1073,9 +1074,8 @@ class BaseGraph(object):
         """
 
         for edge, label in edge_labels.items():
-
+            #TODO cambiar este codigo para que imprima el peso segun el clave valor
             edge_artist = self.edge_artists[edge]
-
             if self._is_selfloop(edge) and (edge_artist.curved is False):
                 msg = "Plotting of edge labels for self-loops not supported for straight edges."
                 msg += "\nIgnoring edge with label: {}".format(label)
@@ -1098,11 +1098,11 @@ class BaseGraph(object):
 
             else:
                 angle = None
-
-            edge_label_artist = self.ax.text(x, y, label,
+            weight = self.edges_with_weight.get(label, None)
+            edge_label_artist = self.ax.text(x, y, weight,
                                              rotation=angle,
                                              **edge_label_fontdict)
-
+            #print(type(label))
             if edge in self.edge_label_artists:
                 self.edge_label_artists[edge].remove()
             self.edge_label_artists[edge] = edge_label_artist

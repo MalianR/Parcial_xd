@@ -552,6 +552,7 @@ class EditableGraph(MutableGraph):
             if isinstance(artist, NodeArtist):
                 self._edit_node_label(artist, key)
             elif isinstance(artist, EdgeArtist):
+                print("Key",key )
                 self._edit_edge_label(artist, key)
 
 
@@ -568,6 +569,7 @@ class EditableGraph(MutableGraph):
 
 
     def _edit_edge_label(self, artist, key):
+        print("Artist: ", artist)
         edge = self.artist_to_key[artist]
         if edge not in self.edge_label_artists:
             self.draw_edge_labels({edge : ''}, self.edge_label_position,

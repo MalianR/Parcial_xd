@@ -8,7 +8,10 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PyQt5 import QtWidgets, QtCore
 import networkx as nx
-from netgraph import EditableGraph
+from ._interactive_variants import (
+    MutableGraph,
+    EditableGraph,
+)
 
 class MplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=500, height=400, dpi=100):
@@ -29,20 +32,17 @@ class MplCanvas(FigureCanvas):
         if modifiers & QtCore.Qt.ShiftModifier:
             if key == QtCore.Qt.Key_Insert: # Detectar Shift + Insert
                 self.add_node_dialog()
-                print("sads")
             elif key == QtCore.Qt.Key_Minus: # Detectar Shift + Minus
                 self.delete_selected()
-                print("sads")
             elif key == QtCore.Qt.Key_At: # Detectar Shift + At (@)
                 self.reverse_edges()
-                print("sads")
         else:
             super().keyPressEvent(event)
             #print("sads")
 
         print("End of keyPressEvent") # Debug print
 
-
+    #No hace nada
     def add_node_dialog(self):
         dialog = QtWidgets.QInputDialog(self)
         dialog.setWindowTitle("Agregar Nodo")
@@ -72,12 +72,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setup_graph(self):
         g = nx.DiGraph()
-        self.edges_list = [(1, 2, {'weight': 1}), (1, 4, {'weight': 1.1}), (2, 5, {'weight': 0.5}),
-                      (4, 5, {'weight': 1.3}), (2, 3, {'weight': 0.8})]
+       #self.edges_list = [(1, 2, {'weight': 1}), (1, 4, {'weight': 1.1}), (2, 5, {'weight': 0.5}),
+                #        (4, 5, {'weight': 1.3}), (2, 3, {'weight': 0.8})]
+        self.edges_list = {(1, 2): 1, (1, 4): 1.1, (2, 5): 0.5,
+                        (4, 5): 1.3, (2, 3):0.8, (3,5) : 9}
+        
         g.add_edges_from(self.edges_list)
+        #g.add_edges_from([(1, 2), (2, 3)], weight=3)
 
         node_color = {1: 'tab:red', 2: 'tab:blue', 3: 'tab:red', 4: 'tab:blue', 5: 'tab:red'}
 
+        #TODO revisar si se pueden configurar posiciones aqui
         pos = nx.spring_layout(g) # Genera posiciones de nodos automáticamente
         original_pos = pos.copy()
 
@@ -107,7 +112,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
                 self.canvas.ax.clear()
 
-                self.canvas.graph = EditableGraph(g, node_positions=pos, node_color=node_color, node_size=5, edge_labels=True, node_labels=True,
+                self.canvas.graph = EditableGraph(g, edges_with_weight = self.edges_list, node_positions=pos, node_color=node_color, node_size=5, edge_labels=True, node_labels=True,
                                                  edge_layout_kwargs=dict(k=0.025), node_label_fontdict=dict(size=20), edge_width=2, 
                                                  annotation_fontdict=dict(color='blue', fontsize=15), edge_label_fontdict=dict(fontweight='bold'),
                                                  arrows=True, ax=self.canvas.ax, edge_color=edge_color)
@@ -117,12 +122,35 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.canvas.draw()
 
         def guardar_edges_list():
-            edges_list = list(g.edges(data=True))
+            edges_list = self.canvas.graph.edge_label_artists
+            edges_list = transform_edges(edges_list)
+            print("Edges: ",self.canvas.graph.edge_label_artists)
+            print("Nodos: ",self.canvas.graph.edges)
             with open('edge_list.json', 'w') as f:
                 json.dump(edges_list, f, indent=2)
             print("Lista de aristas guardada en edge_list.json")
 
-        self.canvas.graph = EditableGraph(g, node_positions=pos, node_color=node_color, node_size=5, edge_labels=True, node_labels=True,
+        def transform_edges(edges):
+            new_edges = []
+            for key, value in edges.items():
+                # Extraer los nodos conectados
+                node1, node2 = key
+                # Extraer el peso del texto dentro de Text()
+                weight_text = str(value).split()[-2][:-1]  # Obtiene el texto que representa el peso
+                print(weight_text)
+                try:
+                    # Intentar convertir el texto a float
+                    weight = float(weight_text)
+                except ValueError:
+                    # Si hay un error (porque el texto no es un número), asignar peso 0
+                    weight = 0
+                # Crear la tupla en el nuevo formato
+                new_edges.append((node1, node2, {'weight': weight}))
+            return new_edges
+
+
+
+        self.canvas.graph = EditableGraph(g,edges_with_weight = self.edges_list, node_positions=pos, node_color=node_color, node_size=5, edge_labels=True, node_labels=True,
                                           edge_layout_kwargs=dict(k=0.025), node_label_fontdict=dict(size=20), edge_width=2,
                                           annotation_fontdict=dict(color='blue', fontsize=15), edge_label_fontdict=dict(fontweight='bold'),
                                           arrows=True, ax=self.canvas.ax)
