@@ -143,7 +143,7 @@ from ._arcdiagram import (
 
 from ._parser import parse_graph
 
-
+from matrices import matriz_adyacencia, matriz_incidencia
 __all__ = [
     'get_random_layout',
     'get_fruchterman_reingold_layout',
@@ -169,4 +169,6 @@ __all__ = [
     'InteractiveArcDiagram',
     'MutableArcDiagram',
     'EditableArcDiagram',
+    'matriz_adyacencia',
+    'matriz_incidencia',
 ]

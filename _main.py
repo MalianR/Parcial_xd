@@ -284,8 +284,6 @@ class BaseGraph(object):
         self.edges = _parse_edge_list(edges)
         self.edges_with_weight = edges_with_weight
         self.nodes = self._initialize_nodes(nodes)
-
-        print(self.edges_with_weight)
         # Convert all node and edge parameters to dictionaries.
         node_shape      = self._normalize_string_argument(node_shape, self.nodes, 'node_shape')
         node_size       = self._normalize_numeric_argument(node_size, self.nodes, 'node_size')

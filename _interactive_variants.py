@@ -508,8 +508,6 @@ class EditableGraph(MutableGraph):
         if event.key == 'enter':
             if self._currently_writing_labels or self._currently_writing_annotations:
                 self._terminate_writing()
-                print(self.node_label_artists)
-                print(self.edge_label_artists)
             else:
                 self._initiate_writing_labels()
         elif event.key == 'alt+enter':
