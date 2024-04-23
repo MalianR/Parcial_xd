@@ -140,25 +140,26 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Función para mostrar la matriz de incidencia del grafo actual
         def mostrar_matriz_incidencia():
-            edges_list = transform_edges_json(self.canvas.graph.edge_label_artists)
-            edges_to_add = convert_keys_to_tuples(edges_list)
-            g.add_edges_from(edges_to_add)
-            matriz = matriz_incidencia(g)
-
-            # Crear una figura y ejes para mostrar la matriz de incidencia
+                # Crear una figura y ejes para mostrar la matriz de incidencia
             fig, axs = plt.subplots(1, 2, figsize=(10, 5))
             axs[1].axis('off') # Desactiva los ejes
             axs[1].set_title('Matriz de Incidencia')
-
+        
+            # Obtener nombres de nodos
+            node_names = {node: str(node) for node in g.nodes()}
+        
+            # Crear matriz de incidencia con nombres de nodos
+            matriz = matriz_incidencia(g, node_names)
+        
             # Ajusta los límites de los ejes basándote en las dimensiones de la lista
             num_rows = len(matriz)
             num_cols = len(matriz[0]) if matriz else 0
             axs[1].set_xlim(0, num_cols)
             axs[1].set_ylim(0, num_rows)
-
+        
             # Desactiva la cuadrícula
             plt.grid(False)
-
+        
             # Ajusta la posición y el tamaño de las celdas de la tabla
             the_table = axs[1].table(cellText=matriz, loc='center', cellLoc='center')
             table_props = the_table.properties()
@@ -167,7 +168,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 for cell in table_cells: 
                     cell.set_height(1/float(num_rows))
                     cell.set_width(1/float(num_cols))
-
+        
             plt.show()
 
         # Función para calcular el camino más corto entre dos nodos utilizando el algoritmo de Dijkstra
