@@ -8,13 +8,15 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PyQt5 import QtWidgets, QtCore
 import networkx as nx
+import tkinter as tk
+from tkinter import simpledialog
 from ._interactive_variants import (
     MutableGraph,
     EditableGraph,
 )
 import ast
 
-from .matrices import matriz_adyacencia, matriz_incidencia
+from .matrices import longest_path_in_dag, matriz_adyacencia, matriz_incidencia
 from PyQt5.QtWidgets import QFileDialog
 
 class MplCanvas(FigureCanvas):
@@ -231,9 +233,23 @@ class MainWindow(QtWidgets.QMainWindow):
         # Función para convertir las claves del diccionario de cadenas a tuplas
         def convert_keys_to_tuples(d):
             return {ast.literal_eval(k): v for k, v in d.items()}
-            
-        def guardar_edges_list_dialogo():
 
+        def ruta_critica():
+            # Creamos una ventana de tkinter para solicitar los nodos de inicio y fin
+            root = tk.Tk()
+            root.withdraw()  # Ocultamos la ventana principal
+
+    # Solicitamos al usuario los nodos de inicio y fin
+            start_node = simpledialog.askinteger("Nodo de inicio", "Ingrese el nodo de inicio:")
+            end_node = simpledialog.askinteger("Nodo de fin", "Ingrese el nodo de fin:")
+
+    # Llamamos a la función para encontrar la ruta crítica
+            critical_path = longest_path_in_dag(g, start_node, end_node)
+            if critical_path:
+                print("Ruta crítica entre los nodos {} y {}: {}".format(start_node, end_node, critical_path))
+
+        def guardar_edges_list_dialogo():
+            
             guardar_edges_list()
             # Transforma los datos de las aristas a un formato JSON
             edges_list = transform_edges_json(self.canvas.graph.edge_label_artists)
@@ -302,6 +318,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.abrir_json_button = QtWidgets.QPushButton('Abrir y Leer JSON', self)
         self.abrir_json_button.clicked.connect(lambda: data_abierto())
         self.layout.addWidget(self.abrir_json_button)
+
+        self.ruta_button_dialogo = QtWidgets.QPushButton('Ruta Critica', self)
+        self.ruta_button_dialogo.clicked.connect(ruta_critica)
+        self.layout.addWidget(self.ruta_button_dialogo)
+
 
 # Función principal para iniciar la aplicación
 def main():
